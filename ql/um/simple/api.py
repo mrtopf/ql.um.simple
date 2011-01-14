@@ -145,6 +145,9 @@ class PoCo(RESTfulHandler):
          }
     
     """
+
+    BASE_FIELDS = ['name']
+    FULL_FIELDS = ['name', 'email']
     
     def error(self, code, msg=None):
         """return an error. The code is the oauth error code to use
@@ -164,14 +167,27 @@ class PoCo(RESTfulHandler):
     @jsonify()
     def get(self, username):
         """try to authenticate the client and the user and create tokens"""
+        print username
         if self.session is None:
             return self.error("invalid_token")
-        username = self.session.username
+        # TODO: An access token might be able to access other users, too.
+        base = True # give only basic information
+        if username=="me" or username==self.session.username:
+            username = self.session.username
+            base = False # give all information
         user = dict(self.settings.users.users.items(username))
-        del user['password']
         user['name'] = {
             'formatted' : '%s %s' %(user['first_name'], user['last_name'])
         }
-        return user
+        del user['password']
+        # TODO: base and full should be defined in the user object actually
+        if base:
+            fields = self.BASE_FIELDS
+        else:
+            fields = self.FULL_FIELDS
+        user2 = {}
+        for field in fields:
+            user2[field] = user[field]
+        return user2
 
 
