@@ -1,0 +1,80 @@
+How the login works
+===================
+
+The following parties are usually involved in a web based app:
+
+ * the user manager (this package)
+ * the backend (will get a token which can then be used to access user information at the usermanager)
+ * the frontend (which has to bind everything together)
+
+The main goal is for the frontend to retrieve that access token from the user manager and
+use this to access services on the backend. The backend will use this token to access
+user information at the user manager. If this isn't possible, the token is invalid.
+
+After retrieving user information the backend will store this token in a session which
+will time out depending on the policy. It is supposed to be short lived (e.g. 1 day).
+If the token times out, the frontend needs to retrieve a new one e.g. by using an
+OAuth refresh token. The backend might also re-retrieve user information on a regular
+basis to check the validity of the token.
+
+Here is a simple flow we use for now as all components should trust each other. We thus
+use the "Autonomous Client Profile" from OAuth 2.0.
+
+The flow is as follows:
+
+ 1. The frontend asks the user for login credentials
+ 2. The frontend uses these login credentials to use the "resource owner password credentials" 
+    way to retrieve an OAuth access token as described in section 5.1.2. in OAuth 2.0 Draft 11
+ 3. The user manager checks the login credentials and returns an access token for that
+    particular user on success.
+
+The API
+=======
+
+The OAuth token endpoint
+------------------------
+
+/1/token
+********
+
+The token endpoint receives a POST with 
+ 
+ * ``grant_type=password``
+ * ``username``
+ * ``password``
+ * ``client_id``
+ * ``client_secret``
+
+in ``application/x-www-form-urlencoded`` encoding, e.g.::
+
+    POST /token HTTP/1.1
+    Host: server.example.com
+    Content-Type: application/x-www-form-urlencoded
+
+    grant_type=password&client_id=s6BhdRkqt3&client_secret=47HDu8s&username=johndoe&password=A3ddj3w
+
+
+It returns::
+
+     HTTP/1.1 200 OK
+     Content-Type: application/json
+     Cache-Control: no-store
+
+     {
+       "access_token":"SlAV32hkKG",
+       "token_type":"example",
+       "expires_in":3600,
+       "refresh_token":"8xLOxBtZp8"
+     }
+
+
+The user manager API
+--------------------
+
+/1/users/<username>/poco
+************************
+
+Return the Portable Contacts information of the user. Needs to use an access token to retrieve this information.
+This can also be used to check if the user is logged in. 
+
+
