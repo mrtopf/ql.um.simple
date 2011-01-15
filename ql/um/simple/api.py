@@ -10,7 +10,7 @@ from ql.backend.framework.decorators import html
 from ql.backend.framework.decorators import json as jsonify
 
 import errors
-from exceptions import BadRequest
+from ql.backend.framework.exceptions import BadRequest
 
 class Token(Handler):
     """exchanges username, password, client id and secret with an access token.
