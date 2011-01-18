@@ -12,7 +12,7 @@ def setup(**kw):
 
     settings['log'] = logbook.Logger("ql.um.simple")
 
-    ## content types
+    # database
     settings.db = db = pymongo.Connection().pm
 
     # path
